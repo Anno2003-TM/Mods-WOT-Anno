@@ -1,0 +1,61 @@
+Hitzone-Skins Erweiterung (Stufe IV-XI)
+========================================
+
+Was ist das?
+Zusaetzliche Hitzone-Skins fuer ca. 380 Panzer der Stufen IV-XI, die in den
+bekannten Hitzone-Skins (Emets / PRO Tanki Skinner) fehlen. Wie dort wird der
+Skin nur beim Anvisieren eines Gegners angezeigt.
+Markiert sind: Munitionslager (weisse Granaten), Kraftstofftank (roter Kasten
+mit Flamme), Motor (rotes Zahnrad) und Besatzung (orange Icons).
+
+Moduldaten: Armor Inspector / WOTInspector (https://wotinspector.com) -
+vielen Dank an reven86 fuer die Erlaubnis, die Heatmap-Daten zu nutzen.
+
+Voraussetzung
+- PRO Tanki Skinner mit den Hitzone-Skins von Emets muss installiert sein,
+  z. B. ueber den Aslain-Modpack (Hitzone-Skins / Skinner).
+
+Installation (einfach)
+1. Zip komplett entpacken (Rechtsklick > Alle extrahieren) und den Ordner
+   BEHALTEN - der Installer holt die Dateien von dort.
+2. WoT schliessen.
+3. Hitzone_installieren.bat doppelklicken und 1 = Installieren waehlen.
+   Der Installer
+   - findet den WoT-Ordner selbst (sonst fragt er einmal danach),
+   - nimmt den Mod-Ordner, den WoT wirklich laedt (aus paths.xml),
+   - kopiert zz_hitzone_friends.wotmod nach mods\<Version>\skinner\,
+   - baut den T-832-Skin aus dem T32-Skin DEINES Emets-Pakets,
+   - fragt, ob die Tarnung eines Gegners beim Anvisieren ausgeblendet
+     werden soll (hitzone.nostyle, optional - 3D-Stile werden bei Gegnern
+     ganz ausgeblendet, eigene Panzer und Verbuendete bleiben unveraendert),
+   - raeumt doppelte Kopien weg (sonst gibt es Konflikte im Spiel),
+   - legt auf Wunsch eine Verknuepfung "Hitzone installieren" auf den Desktop.
+4. WoT starten.
+
+Nach Aslain-Update oder WoT-Patch
+Wenn die Skins weg sind: WoT schliessen, Hitzone_installieren.bat (oder die
+Desktop-Verknuepfung) starten, 1 waehlen. Fertig. Nach einem WoT-Patch erst
+Aslain fuer die neue Version installieren, dann den Installer.
+
+Neue Version holen
+Installer starten und 4 waehlen. Er schaut auf GitHub
+(https://github.com/Anno2003-TM/Mods-WOT-Anno/releases) nach, laedt eine neuere
+Version herunter, aktualisiert diesen Ordner und installiert sie gleich.
+Gibt es etwas Neues, steht das schon beim Start ueber dem Menue.
+
+Weitere Menuepunkte
+2 = Nur pruefen: zeigt, ob alles da ist, ob es doppelte Pakete oder
+    doppelte Dateien gibt. Aendert nichts.
+3 = Entfernen: nimmt die Erweiterung wieder raus (Emets-Skins bleiben).
+Bei Problemen steht alles in hitzone_installer_log.txt in diesem Ordner.
+
+Hinweise
+- Rein optische Mods. Nach der aktuellen Liste verbotener Mods von
+  Wargaming (Stand Nov. 2026) nicht verboten - Nutzung trotzdem auf eigene
+  Verantwortung, Wargaming kann die Regeln jederzeit aendern.
+- Die Emets-Skins sind NICHT in dieser Zip. Der T-832 wird nur aus deinem
+  eigenen installierten Emets-Paket gebaut.
+- Manuell ginge es auch: zz_hitzone_friends.wotmod aus "dateien" nach
+  <WoT-Ordner>\mods\<aktuelle Version>\skinner\ kopieren und
+  hitzone.nostyle_1.1.0.wotmod nach <WoT-Ordner>\mods\<aktuelle Version>\.
+  Jede Datei nur EINMAL in den Mod-Ordner legen.
