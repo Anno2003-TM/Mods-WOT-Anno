@@ -1,5 +1,5 @@
 @echo off
-rem Hitzone-Skins Erweiterung installieren / pruefen / reparieren
+rem Anno Mods (Hitzone-Skins Erweiterung + Anpassen-Suche) installieren / pruefen / entfernen / aktualisieren
 if not exist "%~dp0dateien\installer.ps1" (
   echo Bitte die Zip zuerst komplett entpacken ^(Rechtsklick ^> Alle extrahieren^) und dann diese Datei im entpackten Ordner starten.
   pause

@@ -1,15 +1,16 @@
-# Hitzone-Skins Erweiterung - Installer
+# Anno Mods fuer World of Tanks - Installer (Hitzone-Skins Erweiterung + Anpassen-Suche)
 # Installiert zz_hitzone_friends.wotmod (+ optional hitzone.nostyle) in den Mod-Ordner,
 # den WoT gerade laedt (paths.xml), und baut den T-832-Skin aus DEINEM eigenen
 # Emets/PRO-Tanki-Hitzone-Paket (T32-Texturen). Einfach nach jedem Aslain-Lauf oder
 # WoT-Patch nochmal starten.
 #
 # Aufruf ohne Parameter = Menue. Fuer Profis:
-#   installer.ps1 -Aktion installieren|pruefen|entfernen|update [-Wot <Ordner>] [-NoStyle ja|nein] [-KeinPause]
+#   installer.ps1 -Aktion installieren|pruefen|entfernen|update [-Wot <Ordner>] [-NoStyle ja|nein] [-Anpassen ja|nein] [-KeinPause]
 param(
   [string]$Aktion = '',
   [string]$Wot = '',
   [string]$NoStyle = '',
+  [string]$Anpassen = '',
   [switch]$KeinPause
 )
 
@@ -23,13 +24,14 @@ $LOGF = Join-Path $ROOT 'hitzone_installer_log.txt'
 $SRC_FRIENDS = Join-Path $DATA 'zz_hitzone_friends.wotmod'
 $SRC_NOSTYLE = Join-Path $DATA 'hitzone.nostyle_1.1.0.wotmod'
 $SRC_T832    = Join-Path $DATA 't832'
+$SRC_ANNO    = Get-ChildItem -LiteralPath $DATA -Filter 'anno.c11n_search_*.wotmod' -File -ErrorAction SilentlyContinue | Sort-Object Name -Descending | Select-Object -First 1
 $N_FRIENDS = 'zz_hitzone_friends.wotmod'
 $N_T832    = 'zz_hitzone_t832.wotmod'
 $N_NOSTYLE = 'hitzone.nostyle_1.1.0.wotmod'
 $NOSTYLE_PYC = 'res/scripts/client/gui/mods/mod_hitzone_nostyle.pyc'
 $SKINPFX = 'res/vehicles/tv.protanki.skinner/'
 $GH_REPO  = 'Anno2003-TM/Mods-WOT-Anno'
-$GH_ASSET = 'Hitzone_Skins_Erweiterung_Installer.zip'
+$GH_ASSET = 'Anno_Mods_WoT.zip'
 $VERF     = Join-Path $DATA 'version.txt'
 # T-832 = T32-Reskin mit gleicher Texturaufteilung: Ziel <- Quelle
 $T832_MAP = [ordered]@{
@@ -37,7 +39,7 @@ $T832_MAP = [ordered]@{
   'res/vehicles/tv.protanki.skinner/american/A158_T832/T832_turret_01_AM.dds' = 'res/vehicles/tv.protanki.skinner/american/A12_T32/T32_turret_02_AM.dds'
 }
 
-try { Set-Content -LiteralPath $LOGF -Value ("Hitzone-Installer " + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -Encoding UTF8 } catch {}
+try { Set-Content -LiteralPath $LOGF -Value ("Anno-Mods-Installer " + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -Encoding UTF8 } catch {}
 function Say([string]$t, [string]$c = 'Gray') {
   Write-Host $t -ForegroundColor $c
   try { Add-Content -LiteralPath $LOGF -Value $t -Encoding UTF8 } catch {}
@@ -297,12 +299,13 @@ function Wait-WotClosed {
 
 # ---------- Start ----------
 Write-Host ''
-Write-Host '  Hitzone-Skins Erweiterung (Stufe VIII-XI) - Installer' -ForegroundColor Cyan
-Write-Host '  Daten: WOTInspector / Armor Inspector (reven86)' -ForegroundColor DarkGray
+Write-Host '  Anno Mods - Installer' -ForegroundColor Cyan
+Write-Host '  Hitzone-Skins Erweiterung (Stufe IV-XI) + Anpassen-Suche' -ForegroundColor Cyan
+Write-Host '  Hitzone-Daten: WOTInspector / Armor Inspector (reven86)' -ForegroundColor DarkGray
 Write-Host ''
 
 if (-not (Test-Path -LiteralPath $SRC_FRIENDS)) {
-  Bad "zz_hitzone_friends.wotmod fehlt im Ordner 'dateien'. Bitte die Zip zuerst komplett entpacken (Rechtsklick > Alle extrahieren) und dann Hitzone_installieren.bat im entpackten Ordner starten."
+  Bad "zz_hitzone_friends.wotmod fehlt im Ordner 'dateien'. Bitte die Zip zuerst komplett entpacken (Rechtsklick > Alle extrahieren) und dann Anno_Mods_installieren.bat im entpackten Ordner starten."
   Done 1
 }
 
@@ -337,6 +340,14 @@ $T_NOSTYLE = Join-Path $MODS $N_NOSTYLE
 Say ("WoT-Ordner:  " + $script:WOTDIR)
 Say ("Mod-Ordner:  " + (Rel $MODS) + "   (laut paths.xml, den laedt das Spiel)")
 Write-Host ''
+
+# ---------- Anpassen-Suche ----------
+function Find-Anno([string]$mods) {
+  return @(Get-ChildItem -LiteralPath $mods -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -like 'anno.c11n_search_*.wotmod' -or $_.Name -like 'tobi.c11n_search_*.wotmod' })
+}
+function Has-Gameface([string]$mods) {
+  return [bool](Get-ChildItem -LiteralPath $mods -Recurse -File -Filter 'net.openwg.gameface_*.wotmod' -ErrorAction SilentlyContinue | Select-Object -First 1)
+}
 
 # ---------- Update ueber GitHub ----------
 function Local-Version {
@@ -422,10 +433,11 @@ $emets = @(Get-ChildItem -LiteralPath $SK -Filter '*_scrpts.wotmod' -File -Error
 if ($Aktion -eq 'entfernen') {
   Wait-WotClosed
   $n = 0
+  foreach ($f in (Find-Anno $MODS)) { Remove-Item -LiteralPath $f.FullName -Force; Ok ("entfernt: " + (Rel $f.FullName)); $n++ }
   foreach ($p in @($T_FRIENDS, $T_T832, $T_NOSTYLE)) { if (Test-Path -LiteralPath $p) { Remove-Item -LiteralPath $p -Force; Ok ("entfernt: " + (Rel $p)); $n++ } }
   foreach ($x in (Find-Extra $MODS @())) { if ($x.Own) { Remove-Item -LiteralPath $x.Path -Force; Ok ("entfernt: " + (Rel $x.Path)); $n++ } }
   if ($n -eq 0) { Say 'Nichts zu entfernen.' }
-  Say 'Die Emets-Hitzone-Skins selbst bleiben unveraendert.'
+  Say 'Die Emets-Hitzone-Skins selbst bleiben unveraendert. Die Anpassen-Suche ist ebenfalls entfernt.'
   Done 0
 }
 
@@ -457,6 +469,14 @@ if ($Aktion -eq 'pruefen') {
     Warn ("" + $cf.Count + " Dateien gibt es doppelt (in einem anderen Paket und hier). Betroffene Panzer: " + (($cf.Tanks.Keys | Sort-Object | Select-Object -First 15) -join ', '))
     Say  '          Meist hat Emets inzwischen selbst Skins fuer diese Panzer - dann bitte nach einer neuen Version der Erweiterung fragen.'
   } else { Ok 'keine doppelten Dateien (keine Konflikte)' }
+  $an = @(Find-Anno $MODS)
+  if ($an.Count -eq 0) { Say ("  info    Anpassen-Suche nicht installiert (optional)") }
+  elseif ($an.Count -gt 1) { Warn ("Anpassen-Suche mehrfach installiert: " + (($an | ForEach-Object { $_.Name }) -join ', ')); $prob++ }
+  elseif ($SRC_ANNO -and $an[0].Name -ne $SRC_ANNO.Name) { Warn ("Anpassen-Suche: " + $an[0].Name + " ist eine andere Version als " + $SRC_ANNO.Name); $prob++ }
+  else {
+    Ok ("installiert: " + (Rel $an[0].FullName))
+    if (-not (Has-Gameface $MODS)) { Warn 'Anpassen-Suche braucht net.openwg.gameface (Aslain-Modpack), das fehlt'; $prob++ }
+  }
   Write-Host ''
   if ($prob -eq 0) { Say 'Alles in Ordnung.' 'Green' } else { Say ("" + $prob + " Problem(e) gefunden. Installer nochmal starten und 1 = Installieren / Reparieren waehlen.") 'Yellow' }
   Done 0
@@ -464,17 +484,33 @@ if ($Aktion -eq 'pruefen') {
 
 # ================= INSTALLIEREN / REPARIEREN =================
 if ($Aktion -ne 'installieren') { Bad "Unbekannte Aktion: $Aktion"; Done 1 }
+$skipHz = $false
 if ($skinnerMod.Count -eq 0 -or $emets.Count -eq 0) {
-  Bad ("Die Hitzone-Skins von Emets (PRO Tanki Skinner) sind in " + (Rel $MODS) + " nicht installiert.")
-  Say '          Die Erweiterung braucht sie. Erst im Aslain-Installer "Hitzone-Skins / Skinner" fuer diese WoT-Version'
-  Say '          installieren (nach einem Patch: Aslain-Update abwarten), dann diesen Installer nochmal starten.'
-  Done 1
+  Warn ("Die Hitzone-Skins von Emets (PRO Tanki Skinner) sind in " + (Rel $MODS) + " nicht installiert.")
+  Say '          Die Hitzone-Erweiterung braucht sie und wird diesmal uebersprungen. Erst im Aslain-Installer'
+  Say '          "Hitzone-Skins / Skinner" fuer diese WoT-Version installieren, dann diesen Installer nochmal starten.'
+  $skipHz = $true
 }
 Wait-WotClosed
 
+# Anpassen-Suche ja/nein (wird gemerkt)
+$ap = $Anpassen.ToLower()
+if ($SRC_ANNO -and $ap -notin @('ja', 'nein', 'j', 'n')) {
+  $def = if ($set['anpassen'] -eq 'nein') { 'n' } else { 'j' }
+  Write-Host ''
+  Write-Host 'Anpassen-Suche: Suchfeld in der Garage unter "Anpassen" (2D-Stile, Tarnungen, Embleme usw. nach Namen filtern).'
+  $a = (Read-Host ("Anpassen-Suche installieren? j/n [" + $def + "]")).Trim().ToLower()
+  if (-not $a) { $a = $def }
+  $ap = $a
+}
+$useAnno = [bool]$SRC_ANNO -and $ap.StartsWith('j')
+if ($SRC_ANNO) { $set['anpassen'] = if ($useAnno) { 'ja' } else { 'nein' }; Save-Settings $set }
+if ($skipHz -and -not $useAnno) { Bad 'Nichts zu installieren.'; Done 1 }
+
 # nostyle ja/nein (wird gemerkt)
 $ns = $NoStyle.ToLower()
-if ($ns -notin @('ja', 'nein', 'j', 'n')) {
+if ($skipHz) { $ns = 'nein' }
+elseif ($ns -notin @('ja', 'nein', 'j', 'n')) {
   $def = if ($set['nostyle'] -eq 'nein') { 'n' } else { 'j' }
   Write-Host ''
   Write-Host 'Optional: Tarnung/Lackierung eines GEGNERS ausblenden, solange du ihn anvisierst, damit die Zonen nicht verdeckt werden.'
@@ -484,11 +520,23 @@ if ($ns -notin @('ja', 'nein', 'j', 'n')) {
   $ns = $a
 }
 $useNostyle = $ns.StartsWith('j')
-$set['nostyle'] = if ($useNostyle) { 'ja' } else { 'nein' }; Save-Settings $set
+if (-not $skipHz) { $set['nostyle'] = if ($useNostyle) { 'ja' } else { 'nein' }; Save-Settings $set }
 Write-Host ''
 
 $fehler = 0
 try {
+  # 0) Anpassen-Suche
+  foreach ($f in (Find-Anno $MODS)) {
+    if ($useAnno -and $f.Name -eq $SRC_ANNO.Name) { continue }
+    Remove-Item -LiteralPath $f.FullName -Force; Ok ("alte/abgewaehlte Anpassen-Suche entfernt: " + $f.Name)
+  }
+  if ($useAnno) {
+    $tA = Join-Path $MODS $SRC_ANNO.Name
+    if (Same-File $SRC_ANNO.FullName $tA) { Ok ("schon aktuell: " + (Rel $tA)) }
+    else { Copy-Item -LiteralPath $SRC_ANNO.FullName -Destination $tA -Force; Ok ("installiert: " + (Rel $tA)) }
+    if (-not (Has-Gameface $MODS)) { Warn 'Die Anpassen-Suche braucht net.openwg.gameface (im Aslain-Modpack dabei), das fehlt im Mod-Ordner.' }
+  }
+  if (-not $skipHz) {
   # 1) doppelte / falsch liegende Hitzone-Pakete wegraeumen (sonst Konflikte im Spiel)
   $targets = @($T_FRIENDS, $T_T832); if ($useNostyle) { $targets += $T_NOSTYLE }
   $bak = Join-Path (Join-Path $script:WOTDIR 'hitzone_backup') (Get-Date -Format 'yyyy-MM-dd_HHmmss')
@@ -534,6 +582,7 @@ try {
   $cf = Find-Conflicts $MODS @($T_FRIENDS, $T_T832)
   if ($cf.Count -gt 0) { Warn ("" + $cf.Count + " Dateien gibt es auch in einem anderen Paket (Panzer: " + (($cf.Tanks.Keys | Sort-Object | Select-Object -First 15) -join ', ') + ")") }
   else { Ok 'keine doppelten Dateien' }
+  }
 } catch {
   $fehler = 1
   Bad $_.Exception.Message
@@ -544,12 +593,12 @@ try {
 
 # Verknuepfung auf dem Desktop (einmal fragen)
 if ($fehler -eq 0 -and -not $KeinPause -and -not $set['verknuepfung']) {
-  $a = (Read-Host 'Verknuepfung "Hitzone installieren" auf dem Desktop anlegen (fuer nach Aslain/Patch)? j/n [j]').Trim().ToLower()
+  $a = (Read-Host 'Verknuepfung "Anno Mods installieren" auf dem Desktop anlegen (fuer nach Aslain/Patch)? j/n [j]').Trim().ToLower()
   if (-not $a -or $a.StartsWith('j')) {
     try {
       $ws = New-Object -ComObject WScript.Shell
-      $lnk = $ws.CreateShortcut((Join-Path ([Environment]::GetFolderPath('Desktop')) 'Hitzone installieren.lnk'))
-      $lnk.TargetPath = Join-Path $ROOT 'Hitzone_installieren.bat'
+      $lnk = $ws.CreateShortcut((Join-Path ([Environment]::GetFolderPath('Desktop')) 'Anno Mods installieren.lnk'))
+      $lnk.TargetPath = Join-Path $ROOT 'Anno_Mods_installieren.bat'
       $lnk.WorkingDirectory = $ROOT
       $lnk.Save()
       Ok 'Verknuepfung angelegt'
