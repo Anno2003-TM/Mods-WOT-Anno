@@ -24,7 +24,7 @@ Nach einem Aslain-Update oder einem WoT-Patch startest du den Installer einfach 
 ## Credits
 
 - **Moduldaten:** [WOTInspector / Armor Inspector](https://wotinspector.com) – vielen Dank an **reven86** für die Erlaubnis, die Heatmap-Daten zu nutzen.
-- **Hitzone-Skins und Icons:** Emets / [PRO Tanki](https://www.youtube.com/@PROTankiWoT) Skinner – die Original-Icons werden mit Emets' Erlaubnis verwendet. Die Emets-Skins selbst sind **nicht** enthalten.
+- **Hitzone-Skins und Icons:** Emets / PRO Tanki Skinner – die Original-Icons werden mit Emets' Erlaubnis verwendet. Die Emets-Skins selbst sind **nicht** enthalten.
 
 ## Hinweis
 
